@@ -14,6 +14,7 @@ class QNetwork(nn.Module):
         ======
             state_size (int): Dimension of each state
             action_size (int): Dimension of each action
+            hidden_sizes (int_array): list of sizes of hidden layers
             seed (int): Random seed
         """
         super(QNetwork, self).__init__()
@@ -42,6 +43,8 @@ class DuelingQNetwork(nn.Module):
         ======
             state_size (int): Dimension of each state
             action_size (int): Dimension of each action
+            hidden_sizes (int_array): list of sizes of hidden layers
+            dueling_sizes (int_array): list of sizes of hidden layers for dueling streams
             seed (int): Random seed
         """
         super(DuelingQNetwork, self).__init__()

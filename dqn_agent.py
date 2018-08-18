@@ -10,20 +10,20 @@ import torch.optim as optim
 
 from model import QNetwork, DuelingQNetwork
 
-BUFFER_SIZE = int(1e5)  # replay buffer size
-BATCH_SIZE = 64         # minibatch size
-GAMMA = 0.99            # discount factor
-TAU = 1e-2              # for soft update of target parameters
-LR = 1e-3               # learning rate 
-UPDATE_EVERY = 4        # how often to update the network
-DOUBLE_DQN = True
-DUELING_DQN = True
-PRIORITIZED_EXPERIENCE = False
-PRIORITIZED_EPSILON = 1e-3
-PRIORITIZED_POWER = 0.5
+BUFFER_SIZE = int(1e5)              # replay buffer size
+BATCH_SIZE = 64                     # minibatch size
+GAMMA = 0.99                        # discount factor
+TAU = 1e-3                          # for soft update of target parameters
+LR = 1e-3                           # learning rate
+UPDATE_EVERY = 4                    # how often to update the network
+DOUBLE_DQN = True                   # use double dqn
+DUELING_DQN = True                 # use dueling dqn
+PRIORITIZED_EXPERIENCE = False      # use prioritized experience replay
+PRIORITIZED_EPSILON = 1e-2          # epsilon for experience priorities so to make all probabilities non-zero
+PRIORITIZED_POWER = 0.1             # power to raise priorities to 0 = uniform distribution
 
-HIDDEN_SIZES = [64]
-DUELING_SIZES = [64]
+HIDDEN_SIZES = [64,64]              # list of sizes for hidden layers
+DUELING_SIZES = [64,64]                # list of sizes for hidden layers for dueling streams (only used if DUELING_DQN == TRUE)
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -53,6 +53,7 @@ class Agent():
             self.qnetwork_target = QNetwork(state_size, action_size, HIDDEN_SIZES, seed).to(device)
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=LR)
 
+
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
         # Initialize time step (for updating every UPDATE_EVERY steps)
@@ -74,6 +75,18 @@ class Agent():
                 self.learn(experiences, GAMMA, beta)
                 
     def get_priority(self, state, action, reward, next_state, done):
+        """Returns the the absolute error of your QNetwork to be used in 
+        prioritized experience replay
+
+        Params
+        =====
+          state (array_like): state where we decided to take action
+          action (array_like): action taken in state
+          reward (float): reward received after taking action in state
+          next_state (array_like): current state after we took action in state
+          done (bool): episode is finished
+
+        """
         state = torch.from_numpy(state.reshape(1,-1)).float().to(device)
         next_state = torch.from_numpy(next_state.reshape(1,-1)).float().to(device)
         if DOUBLE_DQN:
@@ -131,7 +144,6 @@ class Agent():
         Q_expected = self.qnetwork_local(states).gather(1, actions)
 
         # Compute loss
-#        loss = F.mse_loss(Q_expected, Q_targets)
         loss = torch.sum(weights.pow(beta) * (Q_expected - Q_targets).pow(2))
         # Minimize the loss
         self.optimizer.zero_grad()
@@ -189,6 +201,7 @@ class ReplayBuffer:
             prob = np.array(self.priorities)/np.sum(self.priorities)
             experience_idxs = np.random.choice(len(self.memory), size=self.batch_size, p=prob)
             experiences = [self.memory[i] for i in experience_idxs]
+            #calculate importance-sampling weight to correct for bias
             weight = torch.from_numpy(np.vstack([1./(len(prob)*p) for e, p in zip(experiences, prob) if e is not None])).float().to(device)
         else:
             experiences = random.sample(self.memory, k=self.batch_size)
