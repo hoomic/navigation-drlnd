@@ -49,6 +49,7 @@ The task is episodic, and in order to solve the environment, the agent must get 
 
 #### Training the Agent
 
+##### Command Line
 To train the agent, simply run:
 ```python ./navigation.py```
 
@@ -59,6 +60,9 @@ For the agent to learn in a reasonable amount of time, it must step through the 
 ```python ./navigation.py --visualize --slow_by 0.1 --slow_every 100```
 
 The agent will step quickly through the first 99 episodes, and then on the 100th episode, it will slow to a speed where you can watch what it is doing.
+
+##### Jupyter Notebook
+There is also a Jupyter notebook saved as Navigation.ipynb if you would prefer to train the agent there.
 
 #### Hyperparameters
 
