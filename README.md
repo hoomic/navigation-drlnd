@@ -2,6 +2,8 @@
 
 ### Introduction
 
+Note: Much of the code/documentation in this repository comes directly from exercises and code provided to me through Udacity's deep reinforcement learning nanodegree program 
+
 This repository provides an agent to learn to collect bananas in a large square world!
 
 A reward of +1 is provided for collecting a yellow banana, and a reward of -1 is provided for collecting a blue banana.  Thus, the goal of the agent is to collect as many yellow bananas as possible while avoiding blue bananas.  
