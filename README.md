@@ -61,7 +61,7 @@ If you want to watch the agent move through the environment as it learns, run:
 For the agent to learn in a reasonable amount of time, it must step through the environment very quickly. When visualizing the agent as it learns, there are two command line arguments to control the speed of the animation how often you want to slow it down. To slow down the animation by 0.1 seconds every 100 episodes, run:
 ```python ./navigation.py --visualize --slow_by 0.1 --slow_every 100```
 
-The agent will step quickly through the first 99 episodes, and then on the 100th episode, it will slow to a speed where you can watch what it is doing.
+The agent will step quickly through the first 99 episodes, and then on the 100th episode, it will slow to a speed where you can watch what it is doing. I found that slow_by values between 0.05 and 0.3 to be the easiest to watch.
 
 ##### Jupyter Notebook
 There is also a Jupyter notebook saved as Navigation.ipynb if you would prefer to train the agent there.
