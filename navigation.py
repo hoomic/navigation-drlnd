@@ -73,6 +73,30 @@ def dqn(
       return scores
   return scores
 
+def load_agent():
+  state_dict = torch.load('checkpoint.pth')
+  agent.qnetwork_local.load_state_dict(state_dict)
+  agent.qnetwork_target.load_state_dict(state_dict)
+
+def watch_one_episode(slow_by=None):
+  env_info = env.reset(train_mode=True)[brain_name] # reset the environment
+  state = env_info.vector_observations[0]            # get the current state
+  score = 0
+  while True:
+    action = agent.act(state)                 # select an action
+    env_info = env.step(action)[brain_name]        # send the action to the environment
+    next_state = env_info.vector_observations[0]   # get the next state
+    reward = env_info.rewards[0]                   # get the reward
+    done = env_info.local_done[0]                  # see if episode has finished
+    state = next_state                             # roll over the state to next time step
+    score += reward
+    print('\rScore: {}'.format(score), end="")
+    if slow_by is not None:
+      sleep(slow_by)
+    if done:                                       # exit loop if episode finished
+      break
+  
+
 
 if __name__ == '__main__':
   import argparse
@@ -80,6 +104,12 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Solve Banana navigation environment with Q-Networks')
   parser.add_argument('--visualize', dest='visualize', action='store_true', default=False,
                     help='Watch agent learn environment')
+  parser.add_argument('--no_train', dest='train', action='store_false', default=True,
+                    help='add this if you don\'t want to train the agent')
+  parser.add_argument('--load', dest='load', action='store_true', default=False,
+                    help='Load a saved model')
+  parser.add_argument('--watch_one_episode', dest='watch_one_episode', action='store_true', default=False,
+                    help='watch one episode of the agent in action')
   parser.add_argument('--n_episodes', dest='n_episodes', type=int, default=10000,
                     help='max number of episodes to train the agent')
   parser.add_argument('--max_t', dest='max_t', type=int, default=1000,
@@ -103,7 +133,7 @@ if __name__ == '__main__':
 
   args = parser.parse_args()
 
-  env = UnityEnvironment(file_name="./Banana_Linux/Banana.x86_64", no_graphics=not args.visualize)
+  env = UnityEnvironment(file_name="./Banana_Linux/Banana.x86_64", no_graphics=not args.visualize and not args.watch_one_episode)
 
   # get the default brain
   brain_name = env.brain_names[0]
@@ -113,18 +143,24 @@ if __name__ == '__main__':
   env_info = env.reset(train_mode=True)[brain_name]
 
   agent = Agent(state_size=len(env_info.vector_observations[0]), action_size=brain.vector_action_space_size, seed=0)
-  scores = dqn(
-    n_episodes=args.n_episodes
-    , max_t=args.max_t
-    , eps_start=args.eps_start
-    , eps_end=args.eps_end
-    , eps_decay=args.eps_decay
-    , beta_start=args.beta_start
-    , beta_end=args.beta_end
-    , beta_growth=args.beta_growth
-    , slow_every=args.slow_every
-    , slow_by=args.slow_by
-  )
+
+  if args.load:
+    load_agent()
+  if args.watch_one_episode:
+    watch_one_episode(args.slow_by)
+  if args.train:
+    scores = dqn(
+      n_episodes=args.n_episodes
+      , max_t=args.max_t
+      , eps_start=args.eps_start
+      , eps_end=args.eps_end
+      , eps_decay=args.eps_decay
+      , beta_start=args.beta_start
+      , beta_end=args.beta_end
+      , beta_growth=args.beta_growth
+      , slow_every=args.slow_every
+      , slow_by=args.slow_by
+    )
 
   # plot the scores
 #  fig = plt.figure()
